@@ -1,0 +1,51 @@
+name: Build TerminalTV Package
+
+on:
+push:
+branches:
+- main
+pull_request:
+workflow_dispatch:
+
+jobs:
+build:
+runs-on: ubuntu-latest
+
+```
+steps:
+  - name: Checkout Repository
+    uses: actions/checkout@v4
+
+  - name: Install Dependencies
+    run: |
+      sudo apt update
+      sudo apt install -y \
+        make \
+        git \
+        curl \
+        unzip \
+        xz-utils \
+        lzma \
+        perl \
+        clang
+
+  - name: Install Theos
+    run: |
+      git clone --recursive https://github.com/theos/theos.git $HOME/theos
+
+  - name: Configure Theos
+    run: |
+      echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+
+  - name: Build Package
+    env:
+      THEOS: ${{ env.THEOS }}
+    run: |
+      make package FINALPACKAGE=1
+
+  - name: Upload DEB Package
+    uses: actions/upload-artifact@v4
+    with:
+      name: TerminalTV-DEB
+      path: packages/*.deb
+```
